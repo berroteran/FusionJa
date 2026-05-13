@@ -57,6 +57,7 @@ import javafx.stage.Stage;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -284,47 +285,74 @@ public class CanvasController {
                 new FileChooser.ExtensionFilter("PNG", "*.png"),
                 new FileChooser.ExtensionFilter("JPG", "*.jpg", "*.jpeg")
         );
-        File selectedFile = fileChooser.showOpenDialog(stage);
-        if (selectedFile == null) {
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(stage);
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
             return;
         }
 
-        try {
-            LoadedImage loadedImage = imageService.loadImage(selectedFile.toPath());
-            BufferedImage image = loadedImage.image();
-            int sourceDpi = loadedImage.dpi();
-            int targetDpi = dpiSpinner.getValue();
-            int layerDpi = sourceDpi;
+        int availableSlots = MAX_LAYERS - repository.size();
+        List<File> filesToImport = selectedFiles.stream().limit(availableSlots).toList();
+        List<String> failedFiles = new ArrayList<>();
+        String lastAddedLayerId = null;
+        int addedCount = 0;
 
-            if (forceDpiCheck.isSelected() && sourceDpi != targetDpi) {
-                image = imageService.rescaleToDpi(image, sourceDpi, targetDpi);
-                layerDpi = targetDpi;
+        for (File selectedFile : filesToImport) {
+            try {
+                LoadedImage loadedImage = imageService.loadImage(selectedFile.toPath());
+                BufferedImage image = loadedImage.image();
+                int sourceDpi = loadedImage.dpi();
+                int targetDpi = dpiSpinner.getValue();
+                int layerDpi = sourceDpi;
+
+                if (forceDpiCheck.isSelected() && sourceDpi != targetDpi) {
+                    image = imageService.rescaleToDpi(image, sourceDpi, targetDpi);
+                    layerDpi = targetDpi;
+                }
+
+                Point2D position = calculateNextLayerPosition();
+                ImageLayer layer = new ImageLayer(
+                        UUID.randomUUID().toString(),
+                        "Layer " + (repository.size() + 1),
+                        image,
+                        position.getX(),
+                        position.getY(),
+                        layerDpi
+                );
+
+                repository.add(layer);
+                LayerView layerView = buildLayerView(layer);
+                layerViews.put(layer.getId(), layerView);
+                canvasPane.getChildren().add(layerView);
+                lastAddedLayerId = layer.getId();
+                addedCount++;
+            } catch (IOException | ImageFusionException ex) {
+                failedFiles.add(selectedFile.getName());
+                LOGGER.log(Level.WARNING, "Error adding image: " + selectedFile.getAbsolutePath(), ex);
             }
+        }
 
-            Point2D position = calculateNextLayerPosition();
-            ImageLayer layer = new ImageLayer(
-                    UUID.randomUUID().toString(),
-                    "Layer " + (repository.size() + 1),
-                    image,
-                    position.getX(),
-                    position.getY(),
-                    layerDpi
-            );
-
-            repository.add(layer);
-            LayerView layerView = buildLayerView(layer);
-            layerViews.put(layer.getId(), layerView);
-            canvasPane.getChildren().add(layerView);
-
-            selectLayer(layer.getId());
+        if (addedCount > 0 && lastAddedLayerId != null) {
+            selectLayer(lastAddedLayerId);
             ensureCanvasFitsLayers();
             refreshLayerList();
             refreshCanvasOrder();
+            statusLabel.setText("Added " + addedCount + " image(s)");
+        }
 
-            statusLabel.setText("Added " + selectedFile.getName() + " (" + layerDpi + " DPI)");
-        } catch (IOException | ImageFusionException ex) {
-            LOGGER.log(Level.WARNING, "Error adding image", ex);
-            showError("Cannot add image", ex.getMessage());
+        if (selectedFiles.size() > availableSlots) {
+            showWarning(
+                    "Layer limit reached",
+                    "Only " + availableSlots + " image(s) were imported because the maximum is 4 layers."
+            );
+        }
+
+        if (!failedFiles.isEmpty()) {
+            String message = "Failed to add " + failedFiles.size() + " file(s): " + String.join(", ", failedFiles);
+            if (addedCount > 0) {
+                showWarning("Some images were skipped", message);
+            } else {
+                showError("Cannot add image", message);
+            }
         }
     }
 
