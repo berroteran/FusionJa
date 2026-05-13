@@ -1,0 +1,6 @@
+interface:
+  display_name: "Cross IDE Skill Template"
+  short_description: "Create portable Codex skill scaffolds for 2026 IDEs."
+  default_prompt: "Use $cross-ide-skill-template to scaffold and validate a new IDE-agnostic skill."
+policy:
+  allow_implicit_invocation: false

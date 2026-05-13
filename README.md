@@ -45,6 +45,22 @@ mvn test
 - `com.imagefusion.model` y `com.imagefusion.dto`: entidades y opciones.
 - `com.imagefusion.ui`: componentes visuales (splash y vista de capa).
 
+## Skills (compatible 2026)
+
+- Workspace: `skills/`
+- Plantilla base: `skills/cross-ide-skill-template`
+- Crear skill nuevo:
+
+```bash
+python skills/cross-ide-skill-template/scripts/create_skill_structure.py --name my-skill --out skills
+```
+
+- Validar skill:
+
+```bash
+python skills/cross-ide-skill-template/scripts/validate_skill_structure.py --skill-dir skills/my-skill
+```
+
 ## Documentación de proyecto
 
 - `LICENSE`: licencia Apache License 2.0.

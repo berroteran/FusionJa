@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Cross-IDE (2026) skill workspace under `skills/`.
+- Reusable skill scaffold and validator scripts.
+- Editor portability baseline with `.editorconfig` and `.gitattributes`.
+
 ### Changed
 
 - Project relicensed from MIT to Apache License 2.0.

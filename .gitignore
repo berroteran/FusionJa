@@ -4,7 +4,17 @@ target/
 # IDE
 .idea/
 *.iml
+*.ipr
+*.iws
 .vscode/
+.classpath
+.project
+.factorypath
+.settings/
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
 
 # OS
 .DS_Store
