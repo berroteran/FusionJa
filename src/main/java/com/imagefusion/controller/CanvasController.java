@@ -24,6 +24,7 @@ import com.imagefusion.model.ImageLayer;
 import com.imagefusion.repository.LayerRepository;
 import com.imagefusion.service.ImageCompositionService;
 import com.imagefusion.ui.LayerView;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -277,6 +278,7 @@ public class CanvasController {
             showWarning("Layer limit reached", "Only 4 layers are allowed.");
             return;
         }
+        boolean wasCanvasEmpty = repository.size() == 0;
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select image");
@@ -336,6 +338,9 @@ public class CanvasController {
             ensureCanvasFitsLayers();
             refreshLayerList();
             refreshCanvasOrder();
+            if (wasCanvasEmpty) {
+                applyZoomFitForFirstImport();
+            }
             statusLabel.setText("Added " + addedCount + " image(s)");
         }
 
@@ -688,6 +693,13 @@ public class CanvasController {
         double scaleY = viewportHeight / contentHeight;
         double fitScale = Math.min(scaleX, scaleY) * 0.96;
         applyZoom(fitScale, true);
+    }
+
+    private void applyZoomFitForFirstImport() {
+        fitToViewport();
+        if (canvasScroll.getViewportBounds().getWidth() <= 0 || canvasScroll.getViewportBounds().getHeight() <= 0) {
+            Platform.runLater(this::fitToViewport);
+        }
     }
 
     private void showInfo(String title, String message) {
