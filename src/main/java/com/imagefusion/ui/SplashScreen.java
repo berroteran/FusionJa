@@ -38,7 +38,7 @@ public class SplashScreen {
     public void show(Runnable onFinished) {
         Stage splashStage = new Stage(StageStyle.UNDECORATED);
 
-        Label title = new Label("Image Fusion FX");
+        Label title = new Label("Fusion-Ja!");
         title.getStyleClass().add("splash-title");
         Label subtitle = new Label("Compositor de imágenes PNG / JPG");
         subtitle.getStyleClass().add("splash-subtitle");

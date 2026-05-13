@@ -7,7 +7,7 @@
     <groupId>com.imagefusion</groupId>
     <artifactId>image-fusion-fx</artifactId>
     <version>1.0.0</version>
-    <name>Image Fusion FX</name>
+    <name>Fusion-Ja!</name>
     <description>JavaFX desktop app to compose up to 4 PNG/JPG layers and export merged image.</description>
     <licenses>
         <license>

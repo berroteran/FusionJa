@@ -1,6 +1,6 @@
 # Contributing
 
-Gracias por contribuir a **Image Fusion FX**.
+Gracias por contribuir a **Fusion-Ja!**.
 
 ## Flujo recomendado
 

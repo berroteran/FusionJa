@@ -1,4 +1,4 @@
-# Image Fusion FX
+# Fusion-Ja!
 
 Aplicación desktop en JavaFX para combinar imágenes PNG/JPG con capas (máximo 4), moverlas libremente, forzar DPI, fusionarlas y exportar como una sola imagen.
 

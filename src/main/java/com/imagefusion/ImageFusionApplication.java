@@ -41,7 +41,7 @@ public class ImageFusionApplication extends Application {
         Scene scene = new Scene(controller.createView(), 1280, 780);
         scene.getStylesheets().add(getClass().getResource("/styles/main.css").toExternalForm());
 
-        stage.setTitle("Image Fusion FX");
+        stage.setTitle("Fusion-Ja!");
         stage.setScene(scene);
         stage.setMinWidth(960);
         stage.setMinHeight(640);

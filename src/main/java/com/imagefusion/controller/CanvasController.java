@@ -163,7 +163,7 @@ public class CanvasController {
         Menu helpMenu = new Menu("Help");
         MenuItem about = new MenuItem("About");
         about.setOnAction(event -> showInfo(
-                "About Image Fusion FX",
+                "About Fusion-Ja!",
                 "Simple image compositor with layers, DPI normalization and PNG/JPG export."
         ));
         helpMenu.getItems().add(about);
