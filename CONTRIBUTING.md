@@ -21,9 +21,12 @@ Gracias por contribuir a **Fusion-Ja!**.
 - Java 21 y Maven.
 - Arquitectura por capas (`controller`, `service`, `repository`, `dto/model`).
 - Nombres en inglés para clases, métodos y variables.
+- Comentarios y JavaDocs en español técnico.
+- Máximo 200 caracteres por línea de código.
 - Manejo explícito de errores con mensajes claros.
 - Logging útil para diagnóstico.
 - Evitar dependencias innecesarias y hacks frágiles.
+- Aplicar Clean Code, alta cohesión, SRP y principios SOLID.
 
 ## Licencia de contribuciones
 
@@ -33,6 +36,7 @@ Apache License 2.0 y conserven los avisos de `LICENSE` y `NOTICE`.
 ## Reglas de calidad
 
 - Sin warnings críticos en compilación.
+- Sin violaciones de Checkstyle (`mvn checkstyle:check`).
 - Tests unitarios para lógica de negocio nueva o modificada.
 - Mantener compatibilidad con PNG/JPG, capas y exportación.
 

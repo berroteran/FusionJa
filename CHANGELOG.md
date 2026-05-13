@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Cross-IDE (2026) skill workspace under `skills/`.
 - Reusable skill scaffold and validator scripts.
 - Editor portability baseline with `.editorconfig` and `.gitattributes`.
+- Global coding directive in `AGENTS.md` and automated style validation with Checkstyle.
 
 ### Changed
 

@@ -61,6 +61,14 @@ python skills/cross-ide-skill-template/scripts/create_skill_structure.py --name 
 python skills/cross-ide-skill-template/scripts/validate_skill_structure.py --skill-dir skills/my-skill
 ```
 
+## Directiva de código
+
+- Variables y métodos en inglés.
+- Comentarios y JavaDocs en español técnico.
+- Máximo 200 caracteres por línea.
+- Aplicar Clean Code, alta cohesión, SRP y principios SOLID.
+- Validación de estilo: `mvn checkstyle:check`.
+
 ## Documentación de proyecto
 
 - `LICENSE`: licencia Apache License 2.0.
