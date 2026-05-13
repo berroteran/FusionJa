@@ -18,6 +18,8 @@ Aplicación desktop en JavaFX para combinar imágenes PNG/JPG con capas (máximo
 mvn clean javafx:run
 ```
 
+En IDE, ejecutar la clase principal `com.imagefusion.ImageFusionLauncher`.
+
 ## Ejecutar tests
 
 ```bash
