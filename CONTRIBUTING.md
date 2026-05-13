@@ -32,6 +32,7 @@ Gracias por contribuir a **Fusion-Ja!**.
 
 Al enviar contribuciones a este repositorio, aceptas que se distribuyan bajo
 Apache License 2.0 y conserven los avisos de `LICENSE` y `NOTICE`.
+También aceptas preservar las atribuciones indicadas en `AUTHORS`.
 
 ## Reglas de calidad
 

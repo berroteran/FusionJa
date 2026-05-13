@@ -5,6 +5,7 @@ Aplicación desktop en JavaFX para combinar imágenes PNG/JPG con capas (máximo
 ## Autor
 
 - Omar Berroterán Silva
+- Rol: autor y mantenedor principal
 
 ## Requisitos
 
@@ -73,6 +74,7 @@ python skills/cross-ide-skill-template/scripts/validate_skill_structure.py --ski
 
 - `LICENSE`: licencia Apache License 2.0.
 - `NOTICE`: avisos y atribución del proyecto.
+- `AUTHORS`: autoría y mantenimiento.
 - `CONTRIBUTING.md`: guía para contribuir.
 - `COLLABORATION.md`: convenciones de trabajo colaborativo.
 - `CODE_OF_CONDUCT.md`: reglas de convivencia técnica.
@@ -83,3 +85,4 @@ python skills/cross-ide-skill-template/scripts/validate_skill_structure.py --ski
 
 Este proyecto está licenciado bajo Apache License 2.0.
 Consulta `LICENSE` y `NOTICE` para el detalle legal y de atribución.
+La autoría del proyecto se declara en `AUTHORS`.

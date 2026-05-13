@@ -24,3 +24,4 @@ y exportación.
 - [ ] Incluye pruebas para comportamiento nuevo
 - [ ] Mantiene límite de 4 capas y reglas de exportación
 - [ ] Documentación actualizada si cambió comportamiento
+- [ ] Mantiene consistencia legal con `LICENSE`, `NOTICE` y `AUTHORS`

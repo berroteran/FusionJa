@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Project relicensed from MIT to Apache License 2.0.
 - Legal metadata and attribution aligned to Omar Berroterán Silva.
 - Commercial name updated to Fusion-Ja!.
+- Added `AUTHORS` and refreshed legal references across docs (`README`, `CONTRIBUTING`, `COLLABORATION`, `SECURITY`, `NOTICE`).
 
 ## [1.0.0] - 2026-05-11
 

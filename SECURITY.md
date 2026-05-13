@@ -16,7 +16,9 @@ Envía el reporte con:
 - impacto estimado
 - versión afectada
 
-a: `security@imagefusion.local`
+Canal de contacto del mantenedor:
+- Omar Berroterán Silva
+- `security@imagefusion.local`
 
 ## Proceso de respuesta
 
