@@ -1,0 +1,5 @@
+interface:
+  display_name: "Commit Policy"
+  short_description: "Redacta commits estilo kernel con 50/72 y Assisted-by"
+  default_prompt: "Escribe o valida el mensaje de commit usando formato kernel y reglas de IA"
+
