@@ -1,0 +1,134 @@
+.root {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+}
+
+.app-root {
+    -fx-background-color: linear-gradient(to bottom, #f0f4f8, #dde4ea);
+}
+
+.menu-bar {
+    -fx-padding: 4 8 4 8;
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #f1f5f9);
+}
+
+.menu-bar .label {
+    -fx-font-size: 13px;
+}
+
+.sidebar {
+    -fx-background-color: #fdfdfd;
+    -fx-border-color: #d0d7df;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar .action-button {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-min-height: 38;
+    -fx-padding: 8 12;
+    -fx-background-radius: 8;
+}
+
+.sidebar .spinner,
+.sidebar .check-box,
+.sidebar .slider,
+.sidebar .list-view {
+    -fx-font-size: 13px;
+}
+
+.sidebar .spinner {
+    -fx-pref-height: 34;
+}
+
+.sidebar .check-box > .box {
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+}
+
+.sidebar .list-view {
+    -fx-fixed-cell-size: 32;
+}
+
+.section-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #334155;
+}
+
+.canvas-scroll {
+    -fx-background: #cfd8e3;
+    -fx-padding: 14;
+}
+
+.canvas-container {
+    -fx-background-color: transparent;
+}
+
+.zoom-bar {
+    -fx-padding: 6 8;
+    -fx-background-color: rgba(255, 255, 255, 0.85);
+    -fx-background-radius: 8;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 8;
+}
+
+.zoom-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #334155;
+}
+
+.zoom-button {
+    -fx-min-height: 34;
+    -fx-padding: 6 12;
+    -fx-background-radius: 8;
+    -fx-font-weight: 600;
+}
+
+.canvas-surface {
+    -fx-background-color: white;
+    -fx-border-color: #a8b4c3;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0.2, 2, 2);
+}
+
+.status-bar {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #d0d7df;
+    -fx-border-width: 1 0 0 0;
+    -fx-font-size: 12.5px;
+}
+
+.splash-root {
+    -fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);
+}
+
+.splash-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f8fafc;
+}
+
+.splash-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #cbd5e1;
+}
+
+.splash-build {
+    -fx-font-size: 11px;
+    -fx-text-fill: #94a3b8;
+}
+
+.splash-progress {
+    -fx-accent: #38bdf8;
+}
+
+.splash-progress > .track {
+    -fx-background-color: rgba(148, 163, 184, 0.25);
+    -fx-background-radius: 10;
+}
+
+.splash-progress > .bar {
+    -fx-background-radius: 10;
+}
