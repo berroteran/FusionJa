@@ -23,7 +23,10 @@ import com.imagefusion.exception.ImageFusionException;
 import com.imagefusion.model.ImageLayer;
 import com.imagefusion.repository.LayerRepository;
 import com.imagefusion.service.ImageCompositionService;
+import com.imagefusion.ui.JavaFxBaseTheme;
 import com.imagefusion.ui.LayerView;
+import com.imagefusion.ui.ThemeMode;
+import com.imagefusion.ui.ThemeService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,19 +42,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -80,6 +86,7 @@ public class CanvasController {
     private final Stage stage;
     private final LayerRepository repository;
     private final ImageCompositionService imageService;
+    private final ThemeService themeService = new ThemeService();
 
     private final Pane canvasPane = new Pane();
     private final ScrollPane canvasScroll = new ScrollPane(canvasPane);
@@ -106,7 +113,12 @@ public class CanvasController {
     public Parent createView() {
         BorderPane root = new BorderPane();
         root.getStyleClass().add("app-root");
-        root.setTop(buildMenuBar());
+        root.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                themeService.attachScene(newScene);
+            }
+        });
+        root.setTop(buildTopBar());
         root.setLeft(buildSidebar());
         root.setCenter(buildCanvasContainer());
         root.setBottom(buildStatusBar());
@@ -139,6 +151,18 @@ public class CanvasController {
         applyZoom(1.0, true);
     }
 
+    private HBox buildTopBar() {
+        MenuBar menuBar = buildMenuBar();
+        MenuButton themeSelector = buildThemeSelector();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox topBar = new HBox(menuBar, spacer, themeSelector);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.getStyleClass().add("top-bar");
+        return topBar;
+    }
+
     private MenuBar buildMenuBar() {
         Menu fileMenu = new Menu("File");
         MenuItem newCanvas = new MenuItem("New Canvas");
@@ -162,6 +186,9 @@ public class CanvasController {
         merge.setOnAction(event -> onMergeLayers());
         layerMenu.getItems().addAll(bringToFront, sendToBack, delete, new SeparatorMenuItem(), merge);
 
+        Menu viewMenu = new Menu("View");
+        viewMenu.getItems().addAll(buildThemeModeMenu(), buildBaseThemeMenu());
+
         Menu helpMenu = new Menu("Help");
         MenuItem about = new MenuItem("About");
         about.setOnAction(event -> showInfo(
@@ -170,7 +197,59 @@ public class CanvasController {
         ));
         helpMenu.getItems().add(about);
 
-        return new MenuBar(fileMenu, layerMenu, helpMenu);
+        return new MenuBar(fileMenu, layerMenu, viewMenu, helpMenu);
+    }
+
+    private Menu buildThemeModeMenu() {
+        Menu themeMenu = new Menu("Theme Mode");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        for (ThemeMode mode : ThemeMode.values()) {
+            themeMenu.getItems().add(createThemeModeItem(mode, toggleGroup));
+        }
+        return themeMenu;
+    }
+
+    private Menu buildBaseThemeMenu() {
+        Menu baseThemeMenu = new Menu("JavaFX Base Theme");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        for (JavaFxBaseTheme baseTheme : JavaFxBaseTheme.values()) {
+            baseThemeMenu.getItems().add(createBaseThemeItem(baseTheme, toggleGroup));
+        }
+        return baseThemeMenu;
+    }
+
+    private MenuButton buildThemeSelector() {
+        MenuButton themeSelector = new MenuButton();
+        themeSelector.getStyleClass().add("theme-selector");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        for (ThemeMode mode : ThemeMode.values()) {
+            themeSelector.getItems().add(createThemeModeItem(mode, toggleGroup));
+        }
+        updateThemeSelectorText(themeSelector, themeService.getThemeMode());
+        themeService.themeModeProperty().addListener((obs, oldMode, newMode) -> updateThemeSelectorText(themeSelector, newMode));
+        return themeSelector;
+    }
+
+    private RadioMenuItem createThemeModeItem(ThemeMode mode, ToggleGroup toggleGroup) {
+        RadioMenuItem item = new RadioMenuItem(mode.getDisplayName());
+        item.setToggleGroup(toggleGroup);
+        item.setSelected(themeService.getThemeMode() == mode);
+        item.setOnAction(event -> themeService.setThemeMode(mode));
+        themeService.themeModeProperty().addListener((obs, oldMode, newMode) -> item.setSelected(newMode == mode));
+        return item;
+    }
+
+    private RadioMenuItem createBaseThemeItem(JavaFxBaseTheme baseTheme, ToggleGroup toggleGroup) {
+        RadioMenuItem item = new RadioMenuItem(baseTheme.getDisplayName());
+        item.setToggleGroup(toggleGroup);
+        item.setSelected(themeService.getBaseTheme() == baseTheme);
+        item.setOnAction(event -> themeService.setBaseTheme(baseTheme));
+        themeService.baseThemeProperty().addListener((obs, oldTheme, newTheme) -> item.setSelected(newTheme == baseTheme));
+        return item;
+    }
+
+    private void updateThemeSelectorText(MenuButton themeSelector, ThemeMode themeMode) {
+        themeSelector.setText("Theme: " + themeMode.getDisplayName());
     }
 
     private VBox buildSidebar() {
@@ -257,7 +336,7 @@ public class CanvasController {
 
     private HBox buildStatusBar() {
         Label caption = new Label("Status:");
-        caption.setTextFill(Color.web("#555555"));
+        caption.getStyleClass().add("status-caption");
         HBox statusBar = new HBox(8, caption, statusLabel);
         statusBar.setAlignment(Pos.CENTER_LEFT);
         statusBar.setPadding(new Insets(8, 12, 8, 12));
