@@ -34,6 +34,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -51,12 +52,15 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -81,6 +85,12 @@ public class CanvasController {
     private static final double DEFAULT_CANVAS_WIDTH = 900;
     private static final double DEFAULT_CANVAS_HEIGHT = 600;
     private static final double CANVAS_MARGIN = 20;
+    private static final double VIEWPORT_PADDING = 24;
+    private static final int MIN_ZOOM_PERCENT = 1;
+    private static final int MAX_ZOOM_PERCENT = 400;
+    private static final double MIN_ZOOM = MIN_ZOOM_PERCENT / 100.0;
+    private static final double MAX_ZOOM = MAX_ZOOM_PERCENT / 100.0;
+    private static final int CANVAS_BYTES_PER_PIXEL = 4;
     private static final int DEFAULT_DPI = 300;
 
     private final Stage stage;
@@ -89,10 +99,13 @@ public class CanvasController {
     private final ThemeService themeService = new ThemeService();
 
     private final Pane canvasPane = new Pane();
-    private final ScrollPane canvasScroll = new ScrollPane(canvasPane);
+    private final Group zoomGroup = new Group(canvasPane);
+    private final StackPane canvasViewport = new StackPane(zoomGroup);
+    private final ScrollPane canvasScroll = new ScrollPane(canvasViewport);
     private final ListView<LayerDto> layersListView = new ListView<>();
     private final Label statusLabel = new Label("Ready");
-    private final Slider zoomSlider = new Slider(0.10, 5.0, 1.0);
+    private final Label canvasInfoLabel = new Label();
+    private final Slider zoomSlider = new Slider(MIN_ZOOM, MAX_ZOOM, 1.0);
     private final Label zoomValueLabel = new Label("100%");
 
     private final CheckBox forceDpiCheck = new CheckBox("Force DPI on import");
@@ -103,6 +116,8 @@ public class CanvasController {
     private final Map<String, LayerView> layerViews = new HashMap<>();
     private String selectedLayerId;
     private int mergedCounter = 1;
+    private boolean updatingZoomControl;
+    private boolean fitZoomActive;
 
     public CanvasController(Stage stage, LayerRepository repository, ImageCompositionService imageService) {
         this.stage = stage;
@@ -137,18 +152,27 @@ public class CanvasController {
         jpegQualitySlider.setBlockIncrement(0.05);
 
         canvasPane.getStyleClass().add("canvas-surface");
-        canvasPane.setPrefSize(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+        resizeCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
         canvasPane.setOnMouseClicked(event -> {
             if (event.getTarget() == canvasPane) {
                 selectLayer(null);
             }
         });
+        canvasViewport.getStyleClass().add("canvas-viewport");
+        canvasViewport.setAlignment(Pos.CENTER);
+        canvasScroll.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> updateViewportMetrics());
+        canvasPane.prefWidthProperty().addListener((obs, oldWidth, newWidth) -> updateViewportMetrics());
+        canvasPane.prefHeightProperty().addListener((obs, oldHeight, newHeight) -> updateViewportMetrics());
 
         zoomSlider.setShowTickLabels(false);
         zoomSlider.setShowTickMarks(false);
         zoomSlider.setBlockIncrement(0.05);
-        zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> applyZoom(newVal.doubleValue(), false));
-        applyZoom(1.0, true);
+        zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (!updatingZoomControl) {
+                applyZoomState(newVal.doubleValue(), false, false, false);
+            }
+        });
+        applyZoomState(1.0, true, false, false);
     }
 
     private HBox buildTopBar() {
@@ -298,6 +322,7 @@ public class CanvasController {
         controls.setPadding(new Insets(14));
         controls.setMinWidth(320);
         controls.getStyleClass().add("sidebar");
+        configureImageDropTarget(controls);
 
         return controls;
     }
@@ -318,11 +343,11 @@ public class CanvasController {
     private HBox buildZoomBar() {
         Button fitButton = new Button("Fit");
         fitButton.getStyleClass().add("zoom-button");
-        fitButton.setOnAction(event -> fitToViewport());
+        fitButton.setOnAction(event -> activateFitZoom(true));
 
         Button hundredButton = new Button("100%");
         hundredButton.getStyleClass().add("zoom-button");
-        hundredButton.setOnAction(event -> applyZoom(1.0, true));
+        hundredButton.setOnAction(event -> applyZoomState(1.0, true, true, false));
 
         Label zoomLabel = new Label("Zoom");
         zoomLabel.getStyleClass().add("zoom-label");
@@ -337,7 +362,9 @@ public class CanvasController {
     private HBox buildStatusBar() {
         Label caption = new Label("Status:");
         caption.getStyleClass().add("status-caption");
-        HBox statusBar = new HBox(8, caption, statusLabel);
+        HBox spacer = new HBox();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox statusBar = new HBox(8, caption, statusLabel, spacer, canvasInfoLabel);
         statusBar.setAlignment(Pos.CENTER_LEFT);
         statusBar.setPadding(new Insets(8, 12, 8, 12));
         statusBar.getStyleClass().add("status-bar");
@@ -357,8 +384,6 @@ public class CanvasController {
             showWarning("Layer limit reached", "Only 4 layers are allowed.");
             return;
         }
-        boolean wasCanvasEmpty = repository.size() == 0;
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select image");
         fileChooser.getExtensionFilters().addAll(
@@ -371,10 +396,22 @@ public class CanvasController {
             return;
         }
 
+        importImageFiles(selectedFiles);
+    }
+
+    private void importImageFiles(List<File> selectedFiles) {
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            return;
+        }
+        if (repository.size() >= MAX_LAYERS) {
+            showWarning("Layer limit reached", "Only 4 layers are allowed.");
+            return;
+        }
+
         int availableSlots = MAX_LAYERS - repository.size();
         List<File> filesToImport = selectedFiles.stream().limit(availableSlots).toList();
         List<String> failedFiles = new ArrayList<>();
-        String lastAddedLayerId = null;
+        String firstAddedLayerId = null;
         int addedCount = 0;
 
         for (File selectedFile : filesToImport) {
@@ -404,7 +441,9 @@ public class CanvasController {
                 LayerView layerView = buildLayerView(layer);
                 layerViews.put(layer.getId(), layerView);
                 canvasPane.getChildren().add(layerView);
-                lastAddedLayerId = layer.getId();
+                if (firstAddedLayerId == null) {
+                    firstAddedLayerId = layer.getId();
+                }
                 addedCount++;
             } catch (IOException | ImageFusionException ex) {
                 failedFiles.add(selectedFile.getName());
@@ -412,14 +451,12 @@ public class CanvasController {
             }
         }
 
-        if (addedCount > 0 && lastAddedLayerId != null) {
-            selectLayer(lastAddedLayerId);
+        if (addedCount > 0 && firstAddedLayerId != null) {
+            selectLayer(firstAddedLayerId);
             ensureCanvasFitsLayers();
             refreshLayerList();
             refreshCanvasOrder();
-            if (wasCanvasEmpty) {
-                applyZoomFitForFirstImport();
-            }
+            applyZoomFitForImport();
             statusLabel.setText("Added " + addedCount + " image(s)");
         }
 
@@ -438,6 +475,41 @@ public class CanvasController {
                 showError("Cannot add image", message);
             }
         }
+    }
+
+    private void configureImageDropTarget(Parent target) {
+        target.addEventHandler(DragEvent.DRAG_OVER, event -> {
+            if (event.getDragboard().hasFiles() && containsSupportedImage(event.getDragboard().getFiles())) {
+                event.acceptTransferModes(TransferMode.COPY);
+                target.getStyleClass().add("drop-active");
+            }
+            event.consume();
+        });
+        target.addEventHandler(DragEvent.DRAG_EXITED, event -> {
+            target.getStyleClass().remove("drop-active");
+            event.consume();
+        });
+        target.addEventHandler(DragEvent.DRAG_DROPPED, event -> {
+            target.getStyleClass().remove("drop-active");
+            List<File> imageFiles = event.getDragboard().getFiles().stream()
+                    .filter(this::isSupportedImageFile)
+                    .toList();
+            importImageFiles(imageFiles);
+            event.setDropCompleted(!imageFiles.isEmpty());
+            event.consume();
+        });
+    }
+
+    private boolean containsSupportedImage(List<File> files) {
+        return files != null && files.stream().anyMatch(this::isSupportedImageFile);
+    }
+
+    private boolean isSupportedImageFile(File file) {
+        if (file == null || !file.isFile()) {
+            return false;
+        }
+        String fileName = file.getName().toLowerCase(Locale.ROOT);
+        return fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg");
     }
 
     private LayerView buildLayerView(ImageLayer layer) {
@@ -489,7 +561,7 @@ public class CanvasController {
     private void ensureCanvasFitsLayers() {
         List<ImageLayer> layers = repository.findAll();
         if (layers.isEmpty()) {
-            canvasPane.setPrefSize(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+            resizeCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
             return;
         }
 
@@ -522,7 +594,8 @@ public class CanvasController {
 
         double requiredWidth = Math.max(DEFAULT_CANVAS_WIDTH, maxX + CANVAS_MARGIN);
         double requiredHeight = Math.max(DEFAULT_CANVAS_HEIGHT, maxY + CANVAS_MARGIN);
-        canvasPane.setPrefSize(requiredWidth, requiredHeight);
+        resizeCanvas(requiredWidth, requiredHeight);
+        updateViewportSize();
     }
 
     private void onDeleteSelectedLayer() {
@@ -653,8 +726,8 @@ public class CanvasController {
         layerViews.clear();
         canvasPane.getChildren().clear();
         selectedLayerId = null;
-        canvasPane.setPrefSize(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-        applyZoom(1.0, true);
+        resizeCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+        applyZoomState(1.0, true, true, false);
         refreshLayerList();
         statusLabel.setText("Canvas reset");
     }
@@ -745,40 +818,135 @@ public class CanvasController {
         return "png";
     }
 
-    private void applyZoom(double zoom, boolean syncSlider) {
-        double safeZoom = Math.max(0.10, Math.min(5.0, zoom));
-        canvasPane.setScaleX(safeZoom);
-        canvasPane.setScaleY(safeZoom);
+    private void applyZoomState(double zoom, boolean syncSlider, boolean centerViewport, boolean fitMode) {
+        double safeZoom = clamp(zoom, MIN_ZOOM, MAX_ZOOM);
+        fitZoomActive = fitMode;
+        zoomGroup.setScaleX(safeZoom);
+        zoomGroup.setScaleY(safeZoom);
         zoomValueLabel.setText("%d%%".formatted((int) Math.round(safeZoom * 100)));
-        if (syncSlider && Math.abs(zoomSlider.getValue() - safeZoom) > 0.0001) {
-            zoomSlider.setValue(safeZoom);
+        if (syncSlider) {
+            syncZoomSlider(safeZoom);
+        }
+        updateViewportSize();
+        updateCanvasInfo();
+        if (centerViewport) {
+            centerViewport();
         }
     }
 
-    private void fitToViewport() {
+    private void activateFitZoom(boolean centerViewport) {
+        double fitScale = calculateFitZoom();
+        if (fitScale <= 0) {
+            return;
+        }
+        applyZoomState(fitScale, true, centerViewport, true);
+    }
+
+    private double calculateFitZoom() {
         double viewportWidth = canvasScroll.getViewportBounds().getWidth();
         double viewportHeight = canvasScroll.getViewportBounds().getHeight();
         if (viewportWidth <= 0 || viewportHeight <= 0) {
-            return;
+            return -1;
         }
 
         double contentWidth = canvasPane.getPrefWidth();
         double contentHeight = canvasPane.getPrefHeight();
         if (contentWidth <= 0 || contentHeight <= 0) {
-            return;
+            return -1;
         }
 
-        double scaleX = viewportWidth / contentWidth;
-        double scaleY = viewportHeight / contentHeight;
-        double fitScale = Math.min(scaleX, scaleY) * 0.96;
-        applyZoom(fitScale, true);
+        double availableWidth = Math.max(1, viewportWidth - VIEWPORT_PADDING * 2);
+        double availableHeight = Math.max(1, viewportHeight - VIEWPORT_PADDING * 2);
+        double scaleX = availableWidth / contentWidth;
+        double scaleY = availableHeight / contentHeight;
+        return Math.min(scaleX, scaleY);
     }
 
-    private void applyZoomFitForFirstImport() {
-        fitToViewport();
+    private void applyZoomFitForImport() {
+        activateFitZoom(true);
         if (canvasScroll.getViewportBounds().getWidth() <= 0 || canvasScroll.getViewportBounds().getHeight() <= 0) {
-            Platform.runLater(this::fitToViewport);
+            Platform.runLater(() -> activateFitZoom(true));
         }
+    }
+
+    private void updateViewportMetrics() {
+        if (fitZoomActive) {
+            activateFitZoom(false);
+            return;
+        }
+        updateViewportSize();
+    }
+
+    private void updateViewportSize() {
+        double zoom = zoomGroup.getScaleX();
+        double viewportWidth = canvasScroll.getViewportBounds().getWidth();
+        double viewportHeight = canvasScroll.getViewportBounds().getHeight();
+        double scaledWidth = canvasPane.getPrefWidth() * zoom;
+        double scaledHeight = canvasPane.getPrefHeight() * zoom;
+        double targetWidth = Math.max(viewportWidth, scaledWidth + VIEWPORT_PADDING * 2);
+        double targetHeight = Math.max(viewportHeight, scaledHeight + VIEWPORT_PADDING * 2);
+        canvasViewport.setMinSize(targetWidth, targetHeight);
+        canvasViewport.setPrefSize(targetWidth, targetHeight);
+        canvasViewport.setMaxSize(targetWidth, targetHeight);
+        updateCanvasInfo();
+    }
+
+    private void resizeCanvas(double width, double height) {
+        canvasPane.setMinSize(width, height);
+        canvasPane.setPrefSize(width, height);
+        canvasPane.setMaxSize(width, height);
+    }
+
+    private void syncZoomSlider(double zoom) {
+        double sliderZoom = clamp(zoom, zoomSlider.getMin(), zoomSlider.getMax());
+        if (Math.abs(zoomSlider.getValue() - sliderZoom) <= 0.0001) {
+            return;
+        }
+        updatingZoomControl = true;
+        try {
+            zoomSlider.setValue(sliderZoom);
+        } finally {
+            updatingZoomControl = false;
+        }
+    }
+
+    private void centerViewport() {
+        Platform.runLater(() -> {
+            canvasScroll.layout();
+            canvasScroll.setHvalue(0.5);
+            canvasScroll.setVvalue(0.5);
+            Platform.runLater(() -> {
+                canvasScroll.setHvalue(0.5);
+                canvasScroll.setVvalue(0.5);
+            });
+        });
+    }
+
+    private void updateCanvasInfo() {
+        int width = Math.max(1, (int) Math.ceil(canvasPane.getPrefWidth()));
+        int height = Math.max(1, (int) Math.ceil(canvasPane.getPrefHeight()));
+        long rawBytes = Math.multiplyExact(Math.multiplyExact((long) width, height), CANVAS_BYTES_PER_PIXEL);
+        int zoomPercent = (int) Math.round(zoomGroup.getScaleX() * 100);
+        canvasInfoLabel.setText("Canvas: %dx%d px | Peso: %s | Zoom: %d%%".formatted(width, height, formatBytes(rawBytes), zoomPercent));
+    }
+
+    private String formatBytes(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        double kib = bytes / 1024.0;
+        if (kib < 1024) {
+            return "%.1f KB".formatted(kib);
+        }
+        double mib = kib / 1024.0;
+        if (mib < 1024) {
+            return "%.1f MB".formatted(mib);
+        }
+        return "%.2f GB".formatted(mib / 1024.0);
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private void showInfo(String title, String message) {
