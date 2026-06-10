@@ -427,7 +427,7 @@ public class CanvasController {
                     layerDpi = targetDpi;
                 }
 
-                Point2D position = calculateNextLayerPosition();
+                Point2D position = calculateNextLayerPosition(image.getWidth(), image.getHeight());
                 ImageLayer layer = new ImageLayer(
                         UUID.randomUUID().toString(),
                         "Layer " + (repository.size() + 1),
@@ -780,15 +780,27 @@ public class CanvasController {
         }
     }
 
-    private Point2D calculateNextLayerPosition() {
+    private Point2D calculateNextLayerPosition(double imageWidth, double imageHeight) {
         if (repository.size() == 0) {
             return new Point2D(CANVAS_MARGIN, CANVAS_MARGIN);
         }
+
         double maxX = repository.findAll().stream()
                 .mapToDouble(layer -> layer.getX() + layer.getWidth())
                 .max()
                 .orElse(CANVAS_MARGIN);
-        return new Point2D(maxX + CANVAS_MARGIN, CANVAS_MARGIN);
+        double maxY = repository.findAll().stream()
+                .mapToDouble(layer -> layer.getY() + layer.getHeight())
+                .max()
+                .orElse(CANVAS_MARGIN);
+
+        double candidateX = maxX + CANVAS_MARGIN;
+        double candidateY = CANVAS_MARGIN;
+        if (candidateX + imageWidth <= DEFAULT_CANVAS_WIDTH * 2) {
+            return new Point2D(candidateX, candidateY);
+        }
+
+        return new Point2D(CANVAS_MARGIN, maxY + CANVAS_MARGIN);
     }
 
     private boolean validateSelectedLayer(String action) {

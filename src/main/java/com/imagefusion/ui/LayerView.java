@@ -24,6 +24,7 @@ import javafx.scene.shape.Rectangle;
 public class LayerView extends Group {
     private final String layerId;
     private final ImageView imageView;
+    private final Rectangle layerOutline;
     private final Rectangle selectionOutline;
 
     public LayerView(String layerId, Image image) {
@@ -32,14 +33,21 @@ public class LayerView extends Group {
         this.imageView.setSmooth(true);
         this.imageView.setPreserveRatio(false);
 
+        this.layerOutline = new Rectangle(image.getWidth(), image.getHeight());
+        this.layerOutline.setFill(Color.TRANSPARENT);
+        this.layerOutline.setStroke(Color.color(1.0, 1.0, 1.0, 0.95));
+        this.layerOutline.setStrokeWidth(2.0);
+        this.layerOutline.setMouseTransparent(true);
+
         this.selectionOutline = new Rectangle(image.getWidth(), image.getHeight());
         this.selectionOutline.setFill(Color.TRANSPARENT);
-        this.selectionOutline.setStroke(Color.DODGERBLUE);
-        this.selectionOutline.setStrokeWidth(1.5);
-        this.selectionOutline.getStrokeDashArray().addAll(6.0, 4.0);
+        this.selectionOutline.setStroke(Color.web("#00d4ff"));
+        this.selectionOutline.setStrokeWidth(3.0);
+        this.selectionOutline.getStrokeDashArray().addAll(10.0, 6.0);
+        this.selectionOutline.setMouseTransparent(true);
         this.selectionOutline.setVisible(false);
 
-        getChildren().addAll(imageView, selectionOutline);
+        getChildren().addAll(imageView, layerOutline, selectionOutline);
     }
 
     public String getLayerId() {
@@ -56,6 +64,8 @@ public class LayerView extends Group {
 
     public void setSelected(boolean selected) {
         selectionOutline.setVisible(selected);
+        layerOutline.setStroke(selected ? Color.web("#ffb703") : Color.color(1.0, 1.0, 1.0, 0.95));
+        layerOutline.setStrokeWidth(selected ? 3.0 : 2.0);
     }
 }
 
