@@ -1,39 +1,39 @@
 ---
 name: commit-policy
-description: Redactar y validar mensajes de commit estilo kernel con formato 50/72, titulo en imperativo, linea en blanco obligatoria, cuerpo centrado en que y por que, referencias Fixes con SHA-1 de al menos 12 caracteres y etiqueta Assisted-by. Usar cuando Codex deba escribir, revisar o corregir commit messages, incluidas limpiezas de historial antes de PR.
+description: Draft and validate kernel-style commit messages with 50/72 formatting, an imperative title, a required blank separator line, body text focused on what and why, Fixes references with SHA-1 of at least 12 characters, and Assisted-by attribution. Use when Codex must write, review, or correct commit messages, including history cleanup before PRs.
 ---
 
 # Commit Policy
 
-Autor: Omar Berroterán Silva.
+Author: Omar Berroterán Silva.
 
-## Objetivo
+## Objective
 
-Generar mensajes de commit autocontenidos, escaneables y auditables.
-Mantener un cambio funcional por commit.
+Generate self-contained, scannable, and auditable commit messages.
+Keep one functional change per commit.
 
-## Flujo
+## Workflow
 
-1. Delimitar un alcance unico por commit.
-2. Escribir titulo imperativo con maximo 50 caracteres.
-3. Dejar segunda linea en blanco.
-4. Escribir cuerpo tecnico con lineas de maximo 72 caracteres.
-5. Explicar problema, impacto y razon del cambio.
-6. Omitir detalles de implementacion evidentes en el codigo.
-7. Agregar referencias con `Fixes:` cuando aplique.
-8. Cerrar siempre con `Assisted-by:`.
-9. No usar `Signed-off-by:` generado por IA.
+1. Keep a single scope per commit.
+2. Write an imperative title with a maximum of 50 characters.
+3. Leave the second line blank.
+4. Write a technical body with lines capped at 72 characters.
+5. Explain problem, impact, and rationale for the change.
+6. Skip implementation details that are already obvious in the code.
+7. Add `Fixes:` references when applicable.
+8. Always end with `Assisted-by:`.
+9. Do not use AI-generated `Signed-off-by:`.
 
-## Reglas Obligatorias
+## Mandatory Rules
 
-- Usar el formato de titulo: `[Component/Module]: Imperative summary`.
-- Capitalizar la primera letra del titulo.
-- No terminar el titulo con punto.
-- Mantener la linea 2 completamente vacia.
-- Limitar todas las lineas del cuerpo a 72 caracteres.
-- Incluir `Assisted-by: <Model or Tool>` como ultima linea no vacia.
-- Si hay `Fixes:`, usar `Fixes: <sha12+> ("<commit title>")`.
-- No incluir `Signed-off-by:` en mensajes generados por IA.
+- Use this title format: `[Component/Module]: Imperative summary`.
+- Capitalize the first letter of the title.
+- Do not end the title with a period.
+- Keep line 2 completely blank.
+- Limit every body line to 72 characters.
+- Include `Assisted-by: <Model or Tool>` as the last non-empty line.
+- If `Fixes:` is present, use `Fixes: <sha12+> ("<commit title>")`.
+- Do not include `Signed-off-by:` in AI-generated commit messages.
 
 ## Plantilla
 
@@ -48,19 +48,19 @@ Fixes: a1b2c3d4e5f6 ("Original commit title")
 Assisted-by: OpenAI GPT-5
 ```
 
-## Checklist de Validacion
+## Validation Checklist
 
-- Titulo <= 50 caracteres.
-- Titulo en imperativo, con formato `[Component/Module]: ...`.
-- Linea 2 vacia.
-- Cuerpo con lineas <= 72 caracteres.
-- Referencia `Fixes:` valida cuando aplique.
-- Ultima linea `Assisted-by:` presente.
-- Sin `Signed-off-by:`.
+- Title <= 50 characters.
+- Imperative title, using `[Component/Module]: ...`.
+- Blank line 2.
+- Body lines <= 72 characters.
+- Valid `Fixes:` reference when applicable.
+- `Assisted-by:` present as the last non-empty line.
+- No `Signed-off-by:`.
 
-## Preguntas Minimas si Falta Contexto
+## Minimal Questions if Context Is Missing
 
-- Cual era el problema observable antes del cambio.
-- Cual es el impacto tecnico o de usuario que corrige.
-- Si existe commit previo para relacionar con `Fixes:`.
+- What was the observable problem before the change.
+- What user or technical impact is resolved.
+- Whether there is a previous commit to reference with `Fixes:`.
 

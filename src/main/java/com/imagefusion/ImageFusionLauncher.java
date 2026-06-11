@@ -27,6 +27,25 @@ public final class ImageFusionLauncher {
     }
 
     public static void main(String[] args) {
+        configurePrismPipeline();
         Application.launch(ImageFusionApplication.class, args);
+    }
+
+    /**
+     * Mitiga inestabilidades conocidas del pipeline D3D en Windows.
+     * Se permite override explícito por VM options cuando sea necesario.
+     */
+    private static void configurePrismPipeline() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        if (!osName.contains("win")) {
+            return;
+        }
+        if (System.getProperty("prism.order") != null) {
+            return;
+        }
+        if (System.getProperty("prism.d3d") != null) {
+            return;
+        }
+        System.setProperty("prism.d3d", "false");
     }
 }

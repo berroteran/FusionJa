@@ -1,8 +1,8 @@
 # Skills Workspace
 
-Estructura base para skills portable entre IDEs en 2026.
+Base structure for portable skills across IDEs in 2026.
 
-## Estructura recomendada
+## Recommended Structure
 
 ```
 skills/
@@ -14,13 +14,13 @@ skills/
     └── assets/
 ```
 
-## Crear un skill nuevo
+## Create a New Skill
 
 ```bash
 python skills/cross-ide-skill-template/scripts/create_skill_structure.py --name my-skill --out skills
 ```
 
-## Validar un skill
+## Validate a Skill
 
 ```bash
 python skills/cross-ide-skill-template/scripts/validate_skill_structure.py --skill-dir skills/my-skill
