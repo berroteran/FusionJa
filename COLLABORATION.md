@@ -1,4 +1,4 @@
-# Collaboration Guide
+# Guía de colaboración
 
 ## Objetivo
 
@@ -13,14 +13,17 @@ y exportación.
 
 ## Acuerdos de colaboración
 
-- Diseñar primero la interfaz de cambios en `service` antes de tocar UI.
-- Evitar acoplar lógica de negocio dentro de `controller`.
+- Aplicar las convenciones y el flujo de [AGENTS.md](AGENTS.md), sin duplicar sus reglas en otras guías.
+- Acordar primero los contratos de los casos de uso del componente afectado antes de implementar sus adaptadores de UI, CLI o servicios.
 - Todo cambio de formato/exportación debe incluir test.
 - Si una mejora rompe compatibilidad, documentarla en `CHANGELOG.md`.
 
-## Pull request checklist
+## Lista de revisión de pull request
 
 - [ ] Compila y pasa tests con `mvn clean test`
+- [ ] Pasa `mvn checkstyle:check`
+- [ ] Respeta los límites de componentes y la dirección de dependencias de `AGENTS.md`
+- [ ] Verifica temas e idiomas o contratos de CLI cuando corresponda
 - [ ] Incluye pruebas para comportamiento nuevo
 - [ ] Mantiene límite de 4 capas y reglas de exportación
 - [ ] Documentación actualizada si cambió comportamiento

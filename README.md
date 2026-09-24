@@ -63,7 +63,7 @@ El proyecto está orientado a una herramienta simple, mantenible y operativament
 
 ## Arquitectura
 
-El código mantiene separación por capas:
+El código existente mantiene la siguiente distribución por capas. La arquitectura objetivo definida en [AGENTS.md](AGENTS.md) organiza por dominio/componente, con capas internas y un core independiente de UI y CLI; su adopción es incremental.
 
 - `com.imagefusion`: arranque de aplicación y launcher.
 - `com.imagefusion.controller`: control de UI, eventos y coordinación de acciones del usuario.
@@ -188,14 +188,8 @@ python skills/cross-ide-skill-template/scripts/validate_skill_structure.py --ski
 
 ## Directiva de código
 
-- Variables, métodos, clases y tablas en inglés.
-- Comentarios y JavaDocs en español técnico.
-- Longitud máxima por línea: 200 caracteres.
-- Aplicar Clean Code, alta cohesión, SRP y principios SOLID.
-- Mantener separación clara entre controlador, servicio, repositorio, DTO y modelo.
-- Evitar acoplamiento innecesario entre UI y lógica de negocio.
-- Ejecutar `mvn clean test` antes de abrir PR.
-- Ejecutar `mvn checkstyle:check` para validar estilo.
+Consultar [AGENTS.md](AGENTS.md), fuente de referencia para nombres, documentación, organización por dominio/componente, desacople, reutilización, temas, idiomas, CLI y validación.
+Estas directivas establecen requisitos para la evolución del proyecto; no implican que una CLI, la traducción completa o la migración de paquetes ya estén implementadas.
 
 ## Consideraciones técnicas
 

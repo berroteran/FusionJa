@@ -1,4 +1,4 @@
-# Contributing
+# Guía de contribución
 
 Gracias por contribuir a **Fusion-Ja!**.
 
@@ -10,6 +10,7 @@ Gracias por contribuir a **Fusion-Ja!**.
 2. Implementa cambios pequeños y coherentes.
 3. Ejecuta validaciones locales:
    - `mvn clean test`
+   - `mvn checkstyle:check`
 4. Abre Pull Request con:
    - contexto del problema
    - solución aplicada
@@ -18,15 +19,8 @@ Gracias por contribuir a **Fusion-Ja!**.
 
 ## Estándares técnicos
 
-- Java 21 y Maven.
-- Arquitectura por capas (`controller`, `service`, `repository`, `dto/model`).
-- Nombres en inglés para clases, métodos y variables.
-- Comentarios y JavaDocs en español técnico.
-- Máximo 200 caracteres por línea de código.
-- Manejo explícito de errores con mensajes claros.
-- Logging útil para diagnóstico.
-- Evitar dependencias innecesarias y hacks frágiles.
-- Aplicar Clean Code, alta cohesión, SRP y principios SOLID.
+Seguir [AGENTS.md](AGENTS.md), fuente de referencia para las convenciones técnicas y la forma de trabajo.
+Antes de implementar, identificar el dominio o componente propietario y sus contratos. La estructura existente por capas debe evolucionar incrementalmente hacia los límites allí definidos.
 
 ## Licencia de contribuciones
 
